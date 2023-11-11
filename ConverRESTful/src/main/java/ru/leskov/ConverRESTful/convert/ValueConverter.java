@@ -1,23 +1,17 @@
-package ru.leskov.ConverRESTful.convert;
+package ru.leskov.converrestful.convert;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Optional;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ValueConverter {
-    private String input;
-    private String type;
-    private final long MAXIMUM_NUMBER = 999_999_999_999L;
 
-    private static final Map<Long, String> unitsMap = Map.ofEntries(
+@Component
+public class ValueConverter {
+    private static final long MAXIMUM_NUMBER = 999_999_999_999L;
+
+    private static final Map<Long, String> UNITS_MAP = Map.ofEntries(
             Map.entry(1L,"one"),
             Map.entry(2L, "two"),
             Map.entry(3L, "three"),
@@ -38,7 +32,7 @@ public class ValueConverter {
             Map.entry(18L, "eighteen"),
             Map.entry(19L, "nineteen"));
 
-    private static final Map<Long, String> tensMap =  Map.ofEntries(
+    private static final Map<Long, String> TENS_MAP =  Map.ofEntries(
             Map.entry(20L, "twenty"),
             Map.entry(30L, "thirty"),
             Map.entry(40L, "forty"),
@@ -48,79 +42,35 @@ public class ValueConverter {
             Map.entry(80L, "eighty"),
             Map.entry(90L, "ninety")
     );
-//
-//    public String getInput() {
-//        return input;
-//    }
-//
-//    public void setInput(String input) {
-//        this.input = input;
-//    }
-//
-//    public String getType() {
-//        return type;
-//    }
-//
-//    public void setType(String type) {
-//        this.type = type;
-//    }
-//
-//    public ValueConverter(String input, String type) {
-//        this.input = input;
-//        this.type = type;
-//    }
 
-    public String toConvert(){
-        if (this.type.equals("NumberToString"))
-            return numberToString();
-        if (this.type.equals("StringToNumber"))
-            return stringToNumber();
-        return "WRONG";
-    }
-
-    public boolean isNumber() {
-        return this.input.matches("-?\\d+");
-    }
-
-
-    public String numberToString() {
-        if (!isNumber())
-            return "WRONG NUMBER";
-        long number = Long.parseLong(this.input);
-        if (Math.abs(number) > MAXIMUM_NUMBER)
-            return "WRONG Number is too large";
-        if (number == 0) {
+    public String numberToString(long number) {
+        if (number<0)
+            return "minus " + numberToString(-number);
+        if (number==0){
             return "zero";
-        } else if (number < 0) {
-            return "minus " + convertPositiveNumberToString(-number);
-        } else {
-            return convertPositiveNumberToString(number);
         }
-    }
-
-    public String convertPositiveNumberToString(long number) {
         if (number < 20) {
             return convertUnits(number);
         } else if (number < 100) {
             return convertTens(number / 10 * 10) + " " +convertUnits(number % 10);
         } else if (number < 1000) {
-            return convertUnits(number / 100) + " hundred " + convertPositiveNumberToString(number % 100);
+            return convertUnits(number / 100) + " hundred " + numberToString(number % 100);
         } else if (number < 1_000_000) {
-            return convertPositiveNumberToString(number / 1000) + " thousand " + convertPositiveNumberToString(number % 1000);
+            return numberToString(number / 1000) + " thousand " + numberToString(number % 1000);
         } else if (number < 1_000_000_000) {
-            return convertPositiveNumberToString(number / 1_000_000) + " million " + convertPositiveNumberToString(number % 1_000_000);
+            return numberToString(number / 1_000_000) + " million " + numberToString(number % 1_000_000);
         } else if (number < 1_000_000_000_000L) {
-            return convertPositiveNumberToString(number / 1_000_000_000) + " billion " + convertPositiveNumberToString(number % 1_000_000_000);
+            return numberToString(number / 1_000_000_000) + " billion " + numberToString(number % 1_000_000_000);
         }
-        return "WRONG CONVERT";
+        throw new RuntimeException("Number is too large");
     }
 
     private String convertUnits(long number) {
-        return unitsMap.getOrDefault(number, "");
+        return UNITS_MAP.getOrDefault(number, "");
     }
 
     private String convertTens(long number) {
-        return tensMap.getOrDefault(number, "");
+        return TENS_MAP.getOrDefault(number, "");
     }
 
 
@@ -130,10 +80,8 @@ public class ValueConverter {
      * является ли оно числом, десятком, сотней, тысячей или миллионом.
      * Затем собирает числовое значение, учитывая все слова, и возвращает результат.
      */
-    public String stringToNumber() {
-        if (isNumber())
-            return "WRONG STRING";
-        String[] words = this.input.split("\\s+");
+    public long stringToNumber(String input) {
+        String[] words = input.split("\\s+");
         long result = 0;
         long currentNumber = 0;
         boolean isNegative = false;
@@ -143,10 +91,10 @@ public class ValueConverter {
 
             if (word.equals("minus")) {
                 isNegative = true;
-            } else if (unitsMap.containsValue(word)) {
-                currentNumber += getKeyByValue(unitsMap, word);
-            } else if (tensMap.containsValue(word)) {
-                currentNumber += getKeyByValue(tensMap, word);
+            } else if (UNITS_MAP.containsValue(word)) {
+                currentNumber += getKeyByValue(UNITS_MAP, word);
+            } else if (TENS_MAP.containsValue(word)) {
+                currentNumber += getKeyByValue(TENS_MAP, word);
             } else if (word.equals("hundred")) {
                 currentNumber *= 100;
             } else if (word.equals("thousand")) {
@@ -162,21 +110,18 @@ public class ValueConverter {
                 result += currentNumber;
                 currentNumber = 0;
             } else {
-                return "WRONG Invalid word: " + word;
+                throw new RuntimeException("Incorrect word " + word);
             }
 
             if (result + currentNumber > MAXIMUM_NUMBER) {
-                return "WRONG Number is too large";
+                throw new RuntimeException("Number is too large");
             }
         }
-
         result += currentNumber;
-
         if (isNegative) {
             result = -result;
         }
-
-        return String.valueOf(result);
+        return result;
     }
 
     private Long getKeyByValue(Map<Long, String> map, String value) {
