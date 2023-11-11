@@ -45,4 +45,8 @@ public class ConvertController {
 
         return new ConvertResponse(result);
     }
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleException(RuntimeException e){
+        return new ResponseEntity<ErrorResponse>(new ErrorResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
 }
