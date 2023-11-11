@@ -28,20 +28,24 @@ public class ConvertController {
     public String toConvert(
             @RequestParam("type") String type,
             @RequestParam("value") String value) {
-        String convertor = new ValueConverter(value,type).toConvert();
-        if (convertor.split(" ")[0].equals("WRONG")){
+        String convertor = new ValueConverter(value, type).toConvert();
+        if (convertor.split(" ")[0].equals("WRONG")) {
             String[] request = convertor.split(" ");
             StringBuilder message = new StringBuilder();
-            for (int i = 1; i < request.length; i++){
+            for (int i = 1; i < request.length; i++) {
                 message.append(request[i]);
             }
-            return HttpStatus.BAD_REQUEST.getReasonPhrase()  + " " + message;
+            return HttpStatus.BAD_REQUEST.getReasonPhrase() + " " + message;
         }
 
-        ConvertInformation convert = new ConvertInformation();
-        convert.setInput(value);
-        convert.setOutput(convertor);
-        convert.setCreatedAt(new Date());
+//        ConvertInformation convert = new ConvertInformation();
+//        convert.setInput(value);
+//        convert.setOutput(convertor);
+//        convert.setCreatedAt(new Date());
+        ConvertInformation convert = ConvertInformation.builder()
+                .input(value)
+                .output(convertor)
+                .createdAt(new Date()).build();
         convertService.save(convert);
 
         return convert.getOutput() + " status: " + HttpStatus.OK.value();

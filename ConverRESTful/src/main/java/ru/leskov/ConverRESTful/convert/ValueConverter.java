@@ -1,8 +1,17 @@
 package ru.leskov.ConverRESTful.convert;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.Map;
 import java.util.Optional;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ValueConverter {
     private String input;
     private String type;
@@ -39,27 +48,27 @@ public class ValueConverter {
             Map.entry(80L, "eighty"),
             Map.entry(90L, "ninety")
     );
-
-    public String getInput() {
-        return input;
-    }
-
-    public void setInput(String input) {
-        this.input = input;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public ValueConverter(String input, String type) {
-        this.input = input;
-        this.type = type;
-    }
+//
+//    public String getInput() {
+//        return input;
+//    }
+//
+//    public void setInput(String input) {
+//        this.input = input;
+//    }
+//
+//    public String getType() {
+//        return type;
+//    }
+//
+//    public void setType(String type) {
+//        this.type = type;
+//    }
+//
+//    public ValueConverter(String input, String type) {
+//        this.input = input;
+//        this.type = type;
+//    }
 
     public String toConvert(){
         if (this.type.equals("NumberToString"))
@@ -127,7 +136,6 @@ public class ValueConverter {
         String[] words = this.input.split("\\s+");
         long result = 0;
         long currentNumber = 0;
-        long lastNumber = 0;
         boolean isNegative = false;
 
         for (String word : words) {
