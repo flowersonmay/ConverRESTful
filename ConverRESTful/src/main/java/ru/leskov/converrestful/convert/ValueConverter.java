@@ -88,7 +88,9 @@ public class ValueConverter {
 
         for (String word : words) {
             word = word.toLowerCase();
-
+            if (word.equals("zero")){
+                return 0;
+            }
             if (word.equals("minus")) {
                 isNegative = true;
             } else if (UNITS_MAP.containsValue(word)) {
